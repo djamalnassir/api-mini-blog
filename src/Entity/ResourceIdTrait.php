@@ -11,6 +11,7 @@ trait ResourceIdTrait
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"article_read", "article_details_read"})
      */
     private int $id;
 
@@ -18,4 +19,5 @@ trait ResourceIdTrait
     {
         return $this->id;
     }
+
 }

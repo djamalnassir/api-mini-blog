@@ -9,11 +9,27 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
- * @ApiResource()
+ * @ApiResource(
+ *      collectionOperations={
+ *          "get"={
+ *              "normalization_context"={"groups"={"user_read"}}
+ *          },
+ *          "post"
+ *      },
+ *      itemOperations={
+ *          "get"={
+ *              "normalization_context"={"groups"={"user_details_read"}}
+ *          },
+ *          "put",
+ *          "patch",
+ *          "delete"
+ *      }
+ * )
  */
 class User implements UserInterface
 {
@@ -23,6 +39,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"user_read", "user_details_read", "article_details_read"})
      */
     private string $email;
 
@@ -39,6 +56,8 @@ class User implements UserInterface
 
     /**
      * @ORM\OneToMany(targetEntity=Article::class, mappedBy="author", orphanRemoval=true)
+     * @Groups({"user_details_read"})
+     * 
      */
     private Collection $articles;
 
@@ -76,7 +95,7 @@ class User implements UserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
+        // guarantee every user at least has ROLE_USER 
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -143,12 +162,14 @@ class User implements UserInterface
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
+            /* set the owning side to null (unless already changed)
             if ($article->getAuthor() === $this) {
                 $article->setAuthor(null);
             }
+            */
         }
 
         return $this;
     }
+
 }
